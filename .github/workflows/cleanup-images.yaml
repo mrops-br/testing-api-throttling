@@ -2,15 +2,20 @@ name: Cleanup Container Images
 
 on:
   schedule:
-    # Domingo, 2h UTC
+    # Sunday, 02:00 UTC
     - cron: '0 2 * * 0'
   workflow_dispatch:
     inputs:
       dry-run:
-        description: 'So mostra o que seria apagado'
+        description: 'Only report what would be deleted'
         required: false
         type: boolean
         default: true
+      repair-broken-images:
+        description: 'Also delete already-broken indexes. DESTROYS TAGS - run in dry-run first'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,8 +30,9 @@ jobs:
       contents: read
     with:
       image-name: testing-throttling-api
-      # As demais opcoes usam os padroes do workflow compartilhado:
-      #   keep-n      3      (3 builds de dev + 3 de pr)
-      #   older-than  14 days
-      #   exclude-tags        latest, dev-latest e qualquer tag semver
+      # Everything else takes the shared workflow defaults:
+      #   keep-n       3         (3 develop builds + 3 pull request builds)
+      #   older-than   14 days
+      #   exclude-tags latest, dev-latest and any semver tag
       dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run || false }}
+      repair-broken-images: ${{ github.event_name == 'workflow_dispatch' && inputs.repair-broken-images || false }}
