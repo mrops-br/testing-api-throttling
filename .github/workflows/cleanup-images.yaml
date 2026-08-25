@@ -2,17 +2,16 @@ name: Cleanup Container Images
 
 on:
   schedule:
-    # Run weekly on Sunday at 2 AM UTC
+    # Domingo, 2h UTC
     - cron: '0 2 * * 0'
   workflow_dispatch:
     inputs:
       dry-run:
-        description: 'Dry run (preview what would be deleted)'
+        description: 'So mostra o que seria apagado'
         required: false
         type: boolean
-        default: false
+        default: true
 
-# Prevent duplicate runs: cancel in-progress runs when new commits are pushed
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -25,28 +24,9 @@ jobs:
       packages: write
       contents: read
     with:
-      # Image configuration
-      image-name: testing-otlp-api
-
-      # Retention: Keep at least 15 versions total
-      min-versions-to-keep: 15
-
-      # Delete all old versions except protected ones
-      num-old-versions-to-delete: 0  # 0 means delete all old versions
-
-      # Protection: Which versions to NEVER delete
-      protect-semver: true        # Protect: latest, 1, 1.2, 1.2.3
-      protect-rc: false           # Don't protect: 1.2.3-rc (allow cleanup)
-      protect-hotfix-rc: false    # Don't protect: 1.2.3-hotfix-rc (allow cleanup)
-      protect-dev-latest: true    # Protect: dev-latest
-
-      # Also protect dev-* and pr-* tags with custom pattern
-      # This protects recent dev and PR builds
-      custom-ignore-pattern: '^(dev-[0-9a-f]{7}|pr-[0-9]+)$'
-
-      # Cleanup untagged images aggressively
-      delete-untagged: true
-      untagged-min-versions: 0
-
-      # Dry run mode (from workflow_dispatch input)
-      dry-run: ${{ github.event.inputs.dry-run == 'true' }}
+      image-name: testing-throttling-api
+      # As demais opcoes usam os padroes do workflow compartilhado:
+      #   keep-n      3      (3 builds de dev + 3 de pr)
+      #   older-than  14 days
+      #   exclude-tags        latest, dev-latest e qualquer tag semver
+      dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run || false }}
