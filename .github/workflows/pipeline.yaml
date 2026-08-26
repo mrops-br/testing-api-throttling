@@ -5,6 +5,10 @@ on:
     branches:
       - main
       - develop
+      # Staging is fed from the release candidate, so the pipeline has to run
+      # on these branches - without them a release branch never starts it.
+      - 'release/**'
+      - 'hotfix/**'
   pull_request:
     branches:
       - main
@@ -14,7 +18,7 @@ on:
       environment:
         description: 'Environment to deploy'
         type: choice
-        options: [dev, stg, prd]
+        options: [stg, prd]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
