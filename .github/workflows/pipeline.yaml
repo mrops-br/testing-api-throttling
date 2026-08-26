@@ -33,6 +33,7 @@ jobs:
       packages: write         # For pushing to GHCR
       id-token: write         # For cosign signing
       security-events: write  # For vulnerability scanning
+      actions: read           # For downloading workflow artifacts
     secrets: inherit
     with:
       # Application configuration
